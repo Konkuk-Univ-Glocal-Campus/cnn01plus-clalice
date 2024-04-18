@@ -14,11 +14,15 @@ import glob
 import os
 import zipfile 
 
-default_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+default_device = 'cuda' if torch.cuda.is_available() else 'cpu' #gpu를 쓰거나 없으면 cpu 사용
 
 # Python에서 MNIST 데이터셋을 불러와서 처리하는 과정
-# 이 함수를 실행하면, builtins 모듈을 통해 전역 변수로 설정된 data_train, data_test, train_loader, test_loader가 생성되어 어디서든 접근할 수 있게 됩니다. 이러한 설정은 함수 내에서 데이터를 처리하고, 이후에 다른 부분에서 해당 데이터를 사용할 때 유용하게 활용될 수 있음
+#이 함수를 실행하면, builtins 모듈을 통해 전역 변수로 설정된 data_train, data_test, train_loader, test_loader가 생성되어 
+#어디서든 접근할 수 있게 됩니다. 이러한 설정은 함수 내에서 데이터를 처리하고,
+#이후에 다른 부분에서 해당 데이터를 사용할 때 유용하게 활용될 수 있음
 
+
+# 이 코드를 mnist -> fashionmnist 로 변환해아함
 def load_mnist(batch_size=64): # load_mnist라는 이름의 함수를 정의하고, 이 함수는 기본적으로 batch_size 매개변수를 64로 설정합니다. 이 매개변수는 데이터를 얼마나 많은 단위로 나눌지 결정
     builtins.data_train = torchvision.datasets.MNIST('./data',
         download=True,train=True,transform=ToTensor()) # torchvision 라이브러리의 datasets 모듈을 사용하여 MNIST 데이터셋을 불러옵니다. './data'는 데이터셋이 저장될 경로를 지정하며, download=True는 해당 경로에 데이터가 없을 경우 인터넷에서 자동으로 다운로드하도록 설정합니다. train=True는 학습용 데이터셋을 불러오는 것을 의미하고, transform=ToTensor()는 데이터셋의 이미지들을 파이토치 텐서로 변환하는 함수를 적용
@@ -30,6 +34,7 @@ def load_mnist(batch_size=64): # load_mnist라는 이름의 함수를 정의하�
 # 신경망을 한 에폭(epoch) 동안 학습하는 과정을 구현한 Python 함수
 # 이 함수는 모델을 학습시키고, 각 배치에서의 평균 손실과 정확도를 계산하여 반환하는데 이를 통해 학습 과정을 모니터링할 수 있음
 
+#lr learning rate 조정 가능
 def train_epoch(net,dataloader,lr=0.01,optimizer=None,loss_fn = nn.NLLLoss()): # 이 함수는 여러 매개변수를 받는데, net은 학습할 신경망 모델, dataloader는 데이터 로더, lr은 학습률(기본값 0.01), optimizer는 최적화 도구(기본값은 None), loss_fn은 손실 함수로 기본적으로 Negative Log Likelihood Loss를 사용
     optimizer = optimizer or torch.optim.Adam(net.parameters(),lr=lr) # 최적화 도구가 제공되지 않았다면, Adam 최적화 도구를 사용하여 신경망의 매개변수를 최적화하며, 학습률은 lr로 설정
     net.train() # 모델을 학습 모드로 설정합니다. 이는 일부 신경망 계층(예: 드롭아웃 계층)이 학습과 평가 모드에서 다르게 동작하기 때문에 필요
@@ -89,7 +94,7 @@ def train_long(net,train_loader,test_loader,epochs=5,lr=0.01,optimizer=None,loss
             lbls = labels.to(default_device) # 레이블을 기본 계산 장치로 이동
             optimizer.zero_grad() # 기울기 버퍼를 0으로 초기화
             out = net(features.to(default_device)) # 특징 데이터를 기본 계산 장치로 이동시킨 후, 모델을 통해 예측을 수행
-            loss = loss_fn(out,lbls) # 예측 결과와 레이블을 사용하여 손실을 계산
+            loss = loss_fn(out,lbls) # 예측 결과와 레이블을 사용하여 손실(loss)을 계산
             loss.backward() # 손실에 대한 기울기를 계산
             optimizer.step() # 계산된 기울기를 사용하여 모델의 가중치를 갱신
             total_loss+=loss # 총 손실을 누적
